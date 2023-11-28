@@ -5,7 +5,15 @@ const textArea = document.querySelector(".app__form-textarea"); //Area dee texto
 const tarefas = JSON.parse(localStorage.getItem("tarefas")) || []; //aqui precisamos fazer o inverso do que foi feito no stringfy
 //Porque precisamos do objeto novamente
 const ulTarefas = document.querySelector(".app__section-task-list");
+// Selecione o botão de Cancelar que adicionamos ao formulário
+const btnCancelar = document.querySelector(".app__form-footer__button--cancel");
 
+//Salvar tarefa no localStorage
+function atualizarTarefas() {
+  localStorage.setItem("tarefas", JSON.stringify(tarefas));
+}
+
+//Criar tarefa e colocar na lista
 function criarElementoTarefa(tarefa) {
   // Criar elemento 'li'
   const li = document.createElement("li");
@@ -24,10 +32,25 @@ function criarElementoTarefa(tarefa) {
   // Criar elemento 'p'
   const paragrafo = document.createElement("p");
   paragrafo.textContent = tarefa.descricao;
+  paragrafo.classList.add("app__section-task-list-item-description");
   li.append(paragrafo);
 
-  // Criar elemento 'button'
+  // Criar elemento 'button' - edit
   const botao = document.createElement("button");
+  botao.classList.add("app_button-edit");
+
+  //Evento editar elemento button
+  botao.onclick = () => {
+    //debugger - ferramenta para debugar;
+    const novaDescricao = prompt("Qual é o novo nome da Tarefa?");
+    // Javascript interpreta um nulo e uma string vazia como false, se estiver preenchida é True. Isso é programação "defensiva"
+    // impede que ao clicar em cancelar ou colocar uma string vazia, o visual da tarefa não se altere.
+    if (novaDescricao) {
+      paragrafo.textContent = novaDescricao; //Alterar descrição do paragrafo (visual)
+      tarefa.descricao = novaDescricao; //Alterar a referência da tarefa camada de dados
+      atualizarTarefas(); // Atualizar localStorage
+    }
+  };
 
   // Criar elemento 'img'
   const imagemBotao = document.createElement("img");
@@ -59,10 +82,14 @@ formAdicionarTarefa.addEventListener("submit", (evento) => {
 
   //adiciona nova tarefa ao array
   tarefas.push(tarefa);
+  const elementoTarefa = criarElementoTarefa(tarefa);
+  ulTarefas.append(elementoTarefa);
 
   // localStorage API só aceita String, fornecer um objeto "complexo" ocasiona um "bug", para evitar isso,
   //utiliza-se stringify que pertence a API do JSON e transforma em uma string
-  localStorage.setItem("tarefas", JSON.stringify(tarefas));
+  atualizarTarefas();
+  textArea.value = "";
+  formAdicionarTarefa.classList.add("hidden");
 });
 
 tarefas.forEach((tarefa) => {
@@ -70,3 +97,12 @@ tarefas.forEach((tarefa) => {
 
   ulTarefas.append(elementoTarefa);
 });
+
+// limpar o conteúdo do textarea e esconder o formulário
+const limparFormulario = () => {
+  textArea.value = ""; // Limpe o conteúdo do textarea
+  formAdicionarTarefa.classList.add("hidden"); // Adicione a classe 'hidden' ao formulário para escondê-lo
+};
+
+// Associe a função limparFormulario ao evento de clique do botão Cancelar
+btnCancelar.addEventListener("click", limparFormulario);
