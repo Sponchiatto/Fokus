@@ -2,11 +2,15 @@
 const btnAdicionarTarefa = document.querySelector(".app__button--add-task"); //Botão Adicionar tarefa
 const formAdicionarTarefa = document.querySelector(".app__form-add-task"); //Formulário de Adicionar Tarefa
 const textArea = document.querySelector(".app__form-textarea"); //Area dee texto do formulário
-const tarefas = JSON.parse(localStorage.getItem("tarefas")) || []; //aqui precisamos fazer o inverso do que foi feito no stringfy
-//Porque precisamos do objeto novamente
 const ulTarefas = document.querySelector(".app__section-task-list");
-// Selecione o botão de Cancelar que adicionamos ao formulário
-const btnCancelar = document.querySelector(".app__form-footer__button--cancel");
+const btnCancelar = document.querySelector(".app__form-footer__button--cancel"); // Selecione o botão de Cancelar que adicionamos ao formulário
+const paragrafoDescricaoTarefa = document.querySelector(
+  ".app__section-active-task-description"
+);
+
+const tarefas = JSON.parse(localStorage.getItem("tarefas")) || []; //aqui precisamos fazer o inverso do que foi feito no stringfy
+let tarefaSelecionada = ""; // objeto da tarefa selecionada
+let liTarefaSelecionada = ""; // elemento html  item de lista da tarefa selecionada
 
 //Salvar tarefa no localStorage
 function atualizarTarefas() {
@@ -59,8 +63,32 @@ function criarElementoTarefa(tarefa) {
   // Anexar 'img' ao 'button'
   botao.append(imagemBotao);
 
-  // Anexar 'button' ao 'li'
+  li.append(svg);
+  li.append(paragrafo);
   li.append(botao);
+
+  //Método para Evidênciar as tarefas ao clicar e deselecionar
+  li.onclick = () => {
+    document
+      .querySelectorAll(".app__section-task-list-item-active")
+      .forEach((elemento) => {
+        elemento.classList.remove("app__section-task-list-item-active");
+      });
+
+    // Deselecionar a tarefa que está selecionada
+    if (tarefaSelecionada == tarefa) {
+      paragrafoDescricaoTarefa.textContent = "";
+      tarefaSelecionada = null;
+      liTarefaSelecionada = null;
+      return; // Early Return, para terminar de executar o código por aqui
+    }
+
+    tarefaSelecionada = tarefa;
+    liTarefaSelecionada = li;
+    paragrafoDescricaoTarefa.textContent = tarefa.descricao;
+
+    li.classList.add("app__section-task-list-item-active");
+  };
 
   return li;
 }
@@ -106,3 +134,13 @@ const limparFormulario = () => {
 
 // Associe a função limparFormulario ao evento de clique do botão Cancelar
 btnCancelar.addEventListener("click", limparFormulario);
+
+document.addEventListener("FocoFinalizado", () => {
+  if (tarefaSelecionada && liTarefaSelecionada) {
+    liTarefaSelecionada.classList.remove("app__section-task-list-item-active");
+    liTarefaSelecionada.classList.add("app__section-task-list-item-complete");
+    liTarefaSelecionada
+      .querySelector("button")
+      .setAttribute("disabled", "disabled");
+  }
+});
